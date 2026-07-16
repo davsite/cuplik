@@ -1,6 +1,6 @@
 node_modules/
 venv/
-_pycache_/
-.pyc
+__pycache__/
+*.pyc
 .env
-temp_media/.mp4
+temp_media/*.mp4
