@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Catatan: tiga baris @tailwind di atas memang ditandai "Unknown at rule"
+   oleh pemeriksa CSS bawaan VS Code — itu hanya peringatan editor.
+   Saat `npm start`/`npm run build`, Tailwind mengubahnya jadi CSS asli.
+   Peringatan sudah dimatikan lewat .vscode/settings.json. */
+
+:root {
+  --accent: #f59e0b;
+  --sprocket: rgba(15, 18, 30, 0.18);
+}
+.dark {
+  --sprocket: rgba(255, 255, 255, 0.14);
+}
+
+html, body { transition: background-color .35s ease; }
+body { -webkit-font-smoothing: antialiased; }
+
+/* ---- Animasi ---- */
+@keyframes cuplik-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cuplik-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cuplik-glow-drift {
+  0%, 100% { transform: translate(-50%, 0) scale(1); }
+  50%      { transform: translate(-42%, 6%) scale(1.08); }
+}
+
+.anim-fade-up { animation: cuplik-fade-up .45s cubic-bezier(.16,1,.3,1) both; }
+.anim-fade-in { animation: cuplik-fade-in .4s ease both; }
+
+/* Cahaya ambient lembut di belakang hero */
+.hero-glow {
+  position: fixed;
+  top: -220px; left: 50%;
+  width: 640px; height: 480px;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(245,158,11,.22), transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  animation: cuplik-glow-drift 14s ease-in-out infinite;
+}
+
+/* ---- Elemen tanda tangan: timeline bergaya pita film ----
+   Dua baris "lubang sproket" di tepi atas & bawah + garis frame halus,
+   seperti pita seluloid tempat editor menandai titik potong. */
+.filmstrip {
+  background-image:
+    repeating-linear-gradient(90deg, var(--sprocket) 0 6px, transparent 6px 18px),
+    repeating-linear-gradient(90deg, var(--sprocket) 0 6px, transparent 6px 18px),
+    repeating-linear-gradient(90deg, rgba(128,138,160,.10) 0 1px, transparent 1px 28px);
+  background-size: 100% 5px, 100% 5px, 100% 100%;
+  background-position: 9px 5px, 9px calc(100% - 10px), 0 0;
+  background-repeat: repeat-x, repeat-x, repeat;
+}
+
+/* Scrollbar tipis */
+* { scrollbar-width: thin; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(120,120,130,.4); border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-up, .anim-fade-in, .hero-glow { animation: none; }
+  html, body { transition: none; }
+}

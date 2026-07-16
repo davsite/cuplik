@@ -1,0 +1,8 @@
+{
+  // "@tailwind" adalah at-rule khusus Tailwind yang diproses saat build.
+  // Pemeriksa CSS bawaan VS Code tidak mengenalnya, jadi ia menandai
+  // "Unknown at rule" — itu HANYA peringatan editor, bukan error asli.
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore"
+}
