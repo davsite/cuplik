@@ -44,12 +44,22 @@ def _extract_douyin_info(url: str):
 
 
 def _quality_ladder(formats):
-    """Daftar tinggi resolusi unik yang punya jalur video, urut dari besar."""
+    """Daftar tinggi resolusi unik yang punya jalur video, urut dari besar.
+
+    Resolusi di atas pagar MAX_HEIGHT server tidak ditawarkan ke user,
+    supaya pilihan di layar jujur dengan yang benar-benar bisa diunduh."""
+    try:
+        max_h = int(os.environ.get("MAX_HEIGHT", "720") or 0)
+    except ValueError:
+        max_h = 720
     heights = set()
     for f in formats or []:
         h = f.get("height")
         if h and f.get("vcodec") not in (None, "none"):
-            heights.add(int(h))
+            h = int(h)
+            if max_h and h > max_h:
+                continue
+            heights.add(h)
     return [{"label": f"{h}p", "height": h} for h in sorted(heights, reverse=True)]
 
 

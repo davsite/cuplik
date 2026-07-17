@@ -6,6 +6,16 @@ import yt_dlp
 
 from api import douyin_service
 
+# --- PAGAR RESOLUSI (trik untuk hosting RAM kecil, mis. Render free 512 MB) ---
+# Server tidak akan pernah mengunduh video lebih tinggi dari batas ini,
+# berapa pun pilihan user. Ubah lewat env var MAX_HEIGHT di dashboard hosting
+# (contoh: 480 kalau masih berat, 1080 kalau nanti pindah server besar).
+# Isi 0 untuk mematikan pagar.
+try:
+    _MAX_HEIGHT = int(os.environ.get("MAX_HEIGHT", "720") or 0)
+except ValueError:
+    _MAX_HEIGHT = 720
+
 
 def _resolution_format(resolution):
     """Bangun format-selector yt-dlp dari pilihan resolusi.
@@ -17,7 +27,12 @@ def _resolution_format(resolution):
     2. Selalu minta video+audio (bv*+ba), dengan cadangan file muxed (b).
        Ini menjamin track audio ikut terunduh."""
     digits = "".join(c for c in str(resolution or "") if c.isdigit())
-    h = f"[height<={digits}]" if digits else ""
+    h_val = int(digits) if digits else None
+    # Terapkan pagar: pilihan user dipangkas ke MAX_HEIGHT bila melebihi,
+    # dan "best" (tanpa angka) otomatis dibatasi MAX_HEIGHT.
+    if _MAX_HEIGHT:
+        h_val = min(h_val, _MAX_HEIGHT) if h_val else _MAX_HEIGHT
+    h = f"[height<={h_val}]" if h_val else ""
     parts = [
         f"bv*[vcodec^=avc1]{h}+ba",
         f"bv*{h}+ba",
