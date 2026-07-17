@@ -35,8 +35,8 @@ class URLRequest(BaseModel):
 
 class ProcessRequest(BaseModel):
     url: str
-    start_time: int
-    end_time: int
+    start_time: float
+    end_time: float
     format: str
     # BUG LAMA: field ini tidak ada, jadi pilihan resolusi dari frontend
     # diam-diam dibuang dan video selalu diunduh kualitas "best".

@@ -79,11 +79,25 @@ def process_media(original_url, start_time, end_time, output_format="mp4", resol
 
 
 def _cut(src, dst, start_time, end_time, output_format):
-    """Potong media. Pakai fast-seek di input (-ss) lalu batasi DURASI di output
-    (-t). Ini lebih benar daripada memasang -to di input (yang membuat panjang
-    klip salah), dan tetap cepat karena stream-copy untuk video."""
-    start = max(0, int(start_time))
-    duration = max(1, int(end_time) - start)
+    """Potong media dengan PRESISI FRAME.
+
+    Pelajaran dari bug "hasil unduhan melenceng beberapa detik":
+    dulu video dipotong dengan vcodec="copy" (salin mentah). Stream-copy
+    hanya bisa mulai di KEYFRAME — pada video sosmed jarak antar keyframe
+    bisa 8 detik lebih, jadi ffmpeg mundur ke keyframe sebelumnya dan
+    hasilnya kelebihan sampai ~6 detik + audio geser tak sinkron.
+    Solusi: encode ulang video (libx264). -ss di input tetap dipakai agar
+    seek cepat; karena ada re-encode, ffmpeg membuang frame sisa hingga
+    titik yang diminta, sehingga potongan akurat sampai ke frame.
+
+    Preset encoder bisa diatur via env FFMPEG_PRESET (default "ultrafast",
+    paling ringan untuk server gratis 0.1 CPU; ganti "veryfast"/"medium"
+    di server yang lebih kuat untuk file lebih kecil)."""
+    start = max(0.0, float(start_time))
+    duration = max(0.5, float(end_time) - start)
+    start = round(start, 3)
+    duration = round(duration, 3)
+    preset = os.environ.get("FFMPEG_PRESET", "ultrafast")
 
     if output_format in ("jpg", "png"):
         (
@@ -103,8 +117,11 @@ def _cut(src, dst, start_time, end_time, output_format):
         (
             ffmpeg
             .input(src, ss=start)
-            .output(dst, t=duration, vcodec="copy", acodec="aac",
-                    **{"avoid_negative_ts": "make_zero"})
+            .output(dst, t=duration,
+                    vcodec="libx264", preset=preset, crf=23,
+                    pix_fmt="yuv420p",
+                    acodec="aac", audio_bitrate="128k",
+                    movflags="+faststart")
             .run(overwrite_output=True, quiet=True)
         )
 
